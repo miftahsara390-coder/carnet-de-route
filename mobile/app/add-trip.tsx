@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Input from '../src/components/Input';
 import Button from '../src/components/Button';
+import { createTrip } from '../src/services/api';
 
 const CATEGORIES = ['Culture', 'Nature', 'Plage', 'Aventure', 'Gastronomie', 'Ville'];
 
@@ -12,6 +13,11 @@ export default function AddTripScreen() {
   const router = useRouter();
   const [selectedCat, setSelectedCat] = useState('');
   const [desc, setDesc] = useState('');
+  const [title, setTitle] = useState('');
+  const [destination, setDestination] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const getCatColor = (cat: string) => {
     switch (cat.toLowerCase()) {
@@ -22,6 +28,29 @@ export default function AddTripScreen() {
       case 'gastronomie': return { bg: '#FFFDE7', text: '#FBC02D' };
       case 'ville': return { bg: '#FCE4EC', text: '#C2185B' };
       default: return { bg: '#F5F5F5', text: '#757575' };
+    }
+  };
+
+  const handleSave = async () => {
+    if (!title || !destination) {
+      alert("Le titre et la destination sont obligatoires !");
+      return;
+    }
+    setLoading(true);
+    try {
+      await createTrip({
+        title,
+        destination,
+        startDate,
+        endDate,
+        description: desc,
+        category: selectedCat || 'Culture'
+      });
+      router.back();
+    } catch (err) {
+      alert("Erreur lors de l'enregistrement");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,6 +75,8 @@ export default function AddTripScreen() {
           placeholder="Exemple : Marrakech, Maroc" 
           iconName="map" 
           iconColor="#F05A45" 
+          value={title}
+          onChangeText={setTitle}
         />
         
         <Input 
@@ -53,6 +84,8 @@ export default function AddTripScreen() {
           placeholder="Exemple : Marrakech, Maroc" 
           iconName="map-pin" 
           iconColor="#F05A45" 
+          value={destination}
+          onChangeText={setDestination}
         />
 
         <View style={styles.row}>
@@ -61,6 +94,8 @@ export default function AddTripScreen() {
               label="Date de départ" 
               placeholder="jj/mm/aaaa" 
               iconName="calendar" 
+              value={startDate}
+              onChangeText={setStartDate}
             />
           </View>
           <View style={{flex: 1, marginLeft: 10}}>
@@ -68,6 +103,8 @@ export default function AddTripScreen() {
               label="Date de retour" 
               placeholder="jj/mm/aaaa" 
               iconName="calendar" 
+              value={endDate}
+              onChangeText={setEndDate}
             />
           </View>
         </View>
@@ -121,7 +158,10 @@ export default function AddTripScreen() {
 
       {/* Bouton fixe en bas */}
       <View style={styles.footer}>
-        <Button title="Enregistrer le voyage" onPress={() => router.back()} />
+        <Button 
+          title={loading ? "Enregistrement..." : "Enregistrer le voyage"} 
+          onPress={handleSave} 
+        />
       </View>
     </SafeAreaView>
   );

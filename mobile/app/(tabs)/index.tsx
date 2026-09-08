@@ -1,19 +1,27 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import TripCard from '../../src/components/TripCard';
-
-// Données fictives pour l'UI
-const trips = [
-  { id: '1', title: 'Marrakech', dates: '12 juin 2026 — 16 juin 2026', category: 'Culture', image: 'https://images.unsplash.com/photo-1597212618440-806262de4f6b?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80' },
-  { id: '2', title: 'Essaouira', dates: '5 avr. 2026 — 12 avr. 2026', category: 'Plage', image: 'https://images.unsplash.com/photo-1570535352843-f72f0f4a7c06?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80' },
-  { id: '3', title: 'Ouarzazate', dates: '18 févr. 2026 — 25 févr. 2026', category: 'Aventure', image: 'https://images.unsplash.com/photo-1620600171058-f9b177d8a6fc?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80' },
-  { id: '4', title: 'Chefchaouen', dates: '10 sept. 2025 — 17 sept. 2025', category: 'Nature', image: 'https://images.unsplash.com/photo-1554902157-1ee6ba6b36a0?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80' },
-];
+import { getTrips } from '../../src/services/api';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [trips, setTrips] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Charger les voyages au lancement
+  useEffect(() => {
+    loadTrips();
+  }, []);
+
+  const loadTrips = async () => {
+    setLoading(true);
+    const data = await getTrips();
+    setTrips(data);
+    setLoading(false);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -66,16 +74,22 @@ export default function HomeScreen() {
 
         {/* Liste des voyages */}
         <View style={styles.listContainer}>
-          {trips.map((trip) => (
-            <TripCard 
-              key={trip.id}
-              title={trip.title}
-              dates={trip.dates}
-              category={trip.category}
-              imageSource={trip.image}
-              onPress={() => router.push(`/trip/${trip.id}`)}
-            />
-          ))}
+          {loading ? (
+            <ActivityIndicator size="large" color="#F05A45" style={{ marginTop: 20 }} />
+          ) : trips.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>Aucun voyage pour le moment.</Text>
+          ) : (
+            trips.map((trip) => (
+              <TripCard 
+                key={trip._id || trip.id}
+                title={trip.title || trip.destination}
+                dates={`${trip.startDate || ''} — ${trip.endDate || ''}`}
+                category={trip.category || 'Non classé'}
+                imageSource={trip.image}
+                onPress={() => router.push(`/trip/${trip._id || trip.id}`)}
+              />
+            ))
+          )}
         </View>
 
       </ScrollView>
