@@ -11,6 +11,9 @@ router.get('/:id', tripController.getTripById);
 // Ajouter un voyage
 router.post('/', tripController.createTrip);
 
+// Modifier un voyage
+router.put('/:id', tripController.updateTrip);
+
 // Supprimer un voyage
 router.delete('/:id', tripController.deleteTrip);
 

@@ -36,6 +36,21 @@ exports.createTrip = async (req, res) => {
   }
 };
 
+// Fonction pour modifier un voyage existant
+exports.updateTrip = async (req, res) => {
+  try {
+    const trip = await Trip.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!trip) return res.status(404).json({ message: 'Voyage introuvable' });
+    res.json(trip);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 // Fonction pour supprimer un voyage
 exports.deleteTrip = async (req, res) => {
   try {
